@@ -318,7 +318,7 @@ namespace NubiloSoft.CoverageExt.CodeRendering
 
             if (textViewLines == null || line.Extent == null) { return; }
 
-            int lineno = 1 + view.TextSnapshot.GetLineNumberFromPosition(line.Extent.Start);
+            int lineno = view.TextSnapshot.GetLineNumberFromPosition(line.Extent.Start);
 
             CoverageState covered = lineno < coverdata.Length ? coverdata[lineno] : CoverageState.Irrelevant;
 
