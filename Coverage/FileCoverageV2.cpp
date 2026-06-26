@@ -4,8 +4,7 @@
 #include <cassert>
 #include <format>
 
-FileCoverageV2::FileCoverageV2(size_t nbLines) :
-  _nbLinesFile(nbLines)
+FileCoverageV2::FileCoverageV2(size_t nbLines)
 {
   _code.resize(nbLines);
 }
@@ -103,7 +102,7 @@ void FileCoverageV2::writeFooter(std::ostream& ofs)
 void FileCoverageV2::write(const std::string& filepath, std::ostream& ofs) const
 {
   ofs << std::format(R"(		<file path="{0}" md5="{1}">)", filepath, md5Code) << std::endl;
-  ofs << std::format(R"(			<stats nbLinesInFile="{0}" nbLinesOfCode="{1}" nbLinesCovered="{2}"/>)", _nbLinesFile, _nbLinesCode, _nbLinesCovered) << std::endl;
+  ofs << std::format(R"(			<stats nbLinesInFile="{0}" nbLinesOfCode="{1}" nbLinesCovered="{2}"/>)", _code.size(), _nbLinesCode, _nbLinesCovered) << std::endl;
   ofs << R"(			<coverage>)" << Base64::Encode(std::string(reinterpret_cast<const char*>(_code.data()), _code.size() * sizeof(LineArray::value_type))) << "</coverage>" << std::endl;
   ofs << R"(		</file>)" << std::endl;
 }

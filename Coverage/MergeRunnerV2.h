@@ -75,7 +75,6 @@ private:
       assert(values.size() % 2 == 0);
 
       FileCoverageV2 profile(values.size() / sizeof(FileCoverageV2::LineArray::value_type));
-      profile._nbLinesFile = std::stoi(regex_result.str(3));
       profile._nbLinesCode = std::stoi(regex_result.str(4));
       profile._nbLinesCovered = std::stoi(regex_result.str(5));
 

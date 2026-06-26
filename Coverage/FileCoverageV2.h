@@ -14,7 +14,6 @@ struct FileCoverageV2
 
   using LineArray = std::vector<uint16_t>;
   LineArray _code;
-  size_t _nbLinesFile = 0;
   size_t _nbLinesCode = 0;
   size_t _nbLinesCovered = 0;
   std::string md5Code;
