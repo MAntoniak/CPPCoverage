@@ -4,6 +4,25 @@
 #include <cassert>
 #include <format>
 
+FileCoverageV2::FileCoverageV2(const FileInfo& info, const std::string_view& md5)
+{
+  assert(info.relevant.size() == info.lines.size());
+  auto itRelevant = info.relevant.cbegin();
+  _code.resize(info.lines.size());
+  md5Code = md5;
+
+  auto itCoverage = _code.begin();
+
+  for (const auto& line : info.lines)
+  {
+    *itCoverage = encodeLine(*itRelevant, line);
+    ++itCoverage;
+    ++itRelevant;
+  }
+
+  updateStats();
+}
+
 FileCoverageV2::FileCoverageV2(size_t nbLines)
 {
   _code.resize(nbLines);

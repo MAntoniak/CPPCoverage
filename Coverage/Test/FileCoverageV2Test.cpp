@@ -2,6 +2,7 @@
 #include <SDKDDKVer.h>
 
 #include "FileCoverageV2.h"
+#include "FileSystem.h"
 
 #ifndef NOMINMAX
 #	define NOMINMAX
@@ -33,6 +34,49 @@ namespace TestNativeV2
 		static constexpr auto c = FileCoverageV2::maskIsCode;
 		static constexpr auto p = FileCoverageV2::maskIsPartial;
 	public:
+		TEST_METHOD(MakeFileCoverageV2UsingFileInfoTest)
+		{
+			static constexpr char TEST_FILENAME[] = "C:\\proj\\src\\file.cpp";
+
+			std::stringstream fileContain;
+			fileContain << "\n";
+			fileContain << "1. partially cov\n";
+			fileContain << "2. full cov\n";
+			fileContain << "3. full cov\n";
+			fileContain << "4. uncovered\n";
+
+			FileSystem::CreateTestFile(TEST_FILENAME, fileContain.str());
+
+			FileInfo fileInfo(TEST_FILENAME);
+			fileInfo.lines[1].DebugCount = 2;
+			fileInfo.lines[1].HitCount = 1;
+
+			fileInfo.lines[2].DebugCount = 1;
+			fileInfo.lines[2].HitCount = 1;
+
+			fileInfo.lines[3].DebugCount = 1;
+			fileInfo.lines[3].HitCount = 1;
+
+			fileInfo.lines[4].DebugCount = 1;
+			fileInfo.lines[4].HitCount = 0;
+
+			FileSystem::DeleteTestFiles();
+
+			FileCoverageV2 coverage(fileInfo, "0123456789ABCDEFGHIJKLMNOPQRSTUV");
+
+			Assert::AreEqual<size_t>(4, coverage._nbLinesCode);
+			Assert::AreEqual<size_t>(3, coverage._nbLinesCovered);
+
+			static constexpr char EXPECT_STREAM[] =
+				"		<file path=\"filename\" md5=\"0123456789ABCDEFGHIJKLMNOPQRSTUV\">\n"
+				"			<stats nbLinesInFile=\"5\" nbLinesOfCode=\"4\" nbLinesCovered=\"3\"/>\n"
+				"			<coverage>AAABwAGAAYAAgA==</coverage>\n"
+				"		</file>\n";
+
+			std::stringstream ss;
+			coverage.write("filename", ss);
+			Assert::AreEqual(EXPECT_STREAM, ss.str().c_str());
+		}
 
 		TEST_METHOD(WriteTest)
 		{
