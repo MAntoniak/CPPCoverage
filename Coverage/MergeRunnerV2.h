@@ -61,8 +61,8 @@ private:
       std::regex pattern(R"(<file path=\"([^\"]*)\" md5=\"(\w{32})\"><stats nbLinesInFile=\"(\d*)\" nbLinesOfCode=\"(\d*)\" nbLinesCovered=\"(\d*)\"\/><coverage>([^<]*)<)",
                          std::regex_constants::ECMAScript | std::regex_constants::icase);
       std::smatch regex_result;
-      std::regex_search(filedata, regex_result, pattern);
-      if (!regex_result.ready())
+      auto result = std::regex_search(filedata, regex_result, pattern);
+      if (!result || !regex_result.ready())
       {
         return;
       }
@@ -70,18 +70,11 @@ private:
       const auto filename = regex_result.str(1);
       const auto md5Code = regex_result.str(2);
 
-      std::string values;
+      std::vector<uint8_t> values;
       Base64::Decode(regex_result.str(6), values);
       assert(values.size() % 2 == 0);
 
-      FileCoverageV2 profile(values.size() / sizeof(FileCoverageV2::LineArray::value_type));
-      profile._nbLinesCode = std::stoi(regex_result.str(4));
-      profile._nbLinesCovered = std::stoi(regex_result.str(5));
-
-      profile.md5Code = regex_result.str(2);
-      std::memcpy(profile._code.data(), values.data(), values.size());
-
-      codeCoverage[filename] = profile;
+      codeCoverage.insert(std::make_pair(filename, FileCoverageV2(values, md5Code)));
     }
     catch (const std::invalid_argument& e)
     {
@@ -166,7 +159,7 @@ private:
           }
           else
           {
-            dictMerge[itDirOutput->first][itFileOutput->first] = itFileOutput->second;
+            dictMerge[itDirOutput->first].insert(*itFileOutput);
           }
           ++itFileOutput;
         }

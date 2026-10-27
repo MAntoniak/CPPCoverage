@@ -16,7 +16,7 @@ public:
   std::string md5Code;
 
   explicit FileCoverageV2(const FileInfo& info, const std::string_view& md5);
-  FileCoverageV2(size_t nbLines = 0);
+  explicit FileCoverageV2(const std::vector<uint8_t>& coverage, const std::string_view& md5);
 
   void updateStats();
   bool merge(const FileCoverageV2& other);

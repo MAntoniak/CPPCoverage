@@ -23,9 +23,14 @@ FileCoverageV2::FileCoverageV2(const FileInfo& info, const std::string_view& md5
   updateStats();
 }
 
-FileCoverageV2::FileCoverageV2(size_t nbLines)
+FileCoverageV2::FileCoverageV2(const std::vector<uint8_t>& coverage, const std::string_view& md5)
 {
-  _code.resize(nbLines);
+  _code.resize(coverage.size() / sizeof(LineArray::value_type));
+
+  md5Code = md5;
+  std::memcpy(_code.data(), coverage.data(), coverage.size());
+
+  updateStats();
 }
 
 FileCoverageV2::LineArray::value_type FileCoverageV2::encodeLine(bool isCode, const FileLineInfo& line)
@@ -48,7 +53,7 @@ FileCoverageV2::LineArray::value_type FileCoverageV2::encodeLine(bool isCode, co
       }
       _nbLinesCovered += 1;
     }
-    code |= std::min<FileCoverageV2::LineArray::value_type>(line.HitCount, FileCoverageV2::maskCount);
+    code |= std::min<LineArray::value_type>(line.HitCount, FileCoverageV2::maskCount);
   }
   return code;
 }
@@ -122,6 +127,6 @@ void FileCoverageV2::write(const std::string& filepath, std::ostream& ofs) const
 {
   ofs << std::format(R"(		<file path="{0}" md5="{1}">)", filepath, md5Code) << std::endl;
   ofs << std::format(R"(			<stats nbLinesInFile="{0}" nbLinesOfCode="{1}" nbLinesCovered="{2}"/>)", _code.size(), _nbLinesCode, _nbLinesCovered) << std::endl;
-  ofs << R"(			<coverage>)" << Base64::Encode(std::string(reinterpret_cast<const char*>(_code.data()), _code.size() * sizeof(LineArray::value_type))) << "</coverage>" << std::endl;
+  ofs << R"(			<coverage>)" << Base64::Encode(reinterpret_cast<const uint8_t*>(_code.data()), _code.size() * sizeof(LineArray::value_type)) << "</coverage>" << std::endl;
   ofs << R"(		</file>)" << std::endl;
 }
