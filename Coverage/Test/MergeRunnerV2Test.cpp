@@ -33,6 +33,11 @@ namespace TestMergeRunner
 	{
 	public:
 
+		TEST_CLASS_CLEANUP(CleanUp)
+		{
+			FileSystem::DeleteTestFiles();
+		}
+
 		void MergeTest(const std::string dirName, const std::string& inputXML)
 		{
 			const auto max = FileCoverageV2::maskCount;
@@ -42,9 +47,8 @@ namespace TestMergeRunner
 			FileCoverageV2::LineArray reference = { 0, 0, c, c | 5, c | p | 2, c | max, c | 4000, 0, c | 6 };
 
 			// Create runner
-			std::stringstream stream(inputXML.c_str());
 			MergeRunnerV2 runner;
-			auto dict = runner.createDictionary("reportFilename", stream);
+			auto dict = runner.makeDictionary("reportFilename");
 			const size_t EXPECT_DICT_SIZE = 1;
 			Assert::AreEqual(EXPECT_DICT_SIZE, dict.size());
 
@@ -68,6 +72,8 @@ namespace TestMergeRunner
 				R"(		</file>)""\n" \
 				R"(</CppCoverage>)";
 
+			FileSystem::CreateTestFile("reportFilename", inputXML);
+
 			MergeTest("", inputXML);
 		}
 
@@ -83,6 +89,8 @@ namespace TestMergeRunner
 				R"(		</file>)""\n" \
 				R"(	</directory>)""\n" \
 				R"(</CppCoverage>)";
+
+			FileSystem::CreateTestFile("reportFilename", inputXML);
 
 			MergeTest("directoryName", inputXML);
 		}

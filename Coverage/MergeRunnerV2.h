@@ -1,13 +1,14 @@
 #pragma once
 
 #include "base64.h"
-#include "FileCallbackInfo.h"
 #include "MergeRunner.h"
+#include "FileCoverageV2.h"
+#include "FileSystem.h"
 
-#include <filesystem>
-#include <sstream>
 #include <map>
+#include <iostream>
 #include <regex>
+#include <unordered_map>
 
 namespace TestMergeRunner
 {
@@ -42,14 +43,14 @@ private:
     return regex_result.str(1);
   }
 
-  void parseFile(const std::string& filename, std::istream& stream, CodeCoverage& codeCoverage, const std::string& fileline) const
+  void parseFile(const std::string& filename, IFilePtr& file, CodeCoverage& codeCoverage, const std::string& fileline) const
   {
     try
     {
       // read whole data about file
       std::string filedata = fileline;
       std::string line;
-      while (std::getline(stream, line))
+      while (file->ReadLine(line))
       {
         static constexpr std::string_view END_FILE = "</file>";
         const auto pos = line.find(END_FILE);
@@ -102,24 +103,19 @@ private:
 
   DictCoverage makeDictionary(const std::string& filename) const
   {
-    std::ifstream outputFile(filename.c_str(), std::fstream::in);
-    if (!outputFile.is_open())
+    auto file = FileSystem::OpenFile(filename);
+    if (!file->IsOpen())
     {
       const std::string msg = "Merge failure: Impossible to open file: " + filename;
       throw std::exception(msg.c_str());
     }
 
-    return createDictionary(filename, outputFile);
-  }
-
-  DictCoverage createDictionary(const std::string& filename, std::istream& stream) const
-  {
     DictCoverage dictOutput;
     CodeCoverage codeCoverage;
     std::string currentDir;
 
     std::string line;
-    while (std::getline(stream, line))
+    while (file->ReadLine(line))
     {
       std::string lineClean = clean(line);
       line.clear();
@@ -130,7 +126,7 @@ private:
       }
       else if (lineClean.starts_with("<file"))
       {
-        parseFile(filename, stream, codeCoverage, lineClean);
+        parseFile(filename, file, codeCoverage, lineClean);
       }
       else if (lineClean.starts_with("</directory>"))
       {
