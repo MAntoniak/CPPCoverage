@@ -27,74 +27,64 @@ namespace Microsoft
 	}
 }
 
-namespace TestFormat
+namespace TestMergeRunner
 {
-	TEST_CLASS(TestNativeV2)
+	TEST_CLASS(TestMergeRunnerV2)
 	{
 	public:
 
-		void MergeTest(const std::string dirName)
+		void MergeTest(const std::string dirName, const std::string& inputXML)
 		{
 			const auto max = FileCoverageV2::maskCount;
 			const auto c   = FileCoverageV2::maskIsCode;
 			const auto p   = FileCoverageV2::maskIsPartial;
-			FileCoverageV2 coverage(9);
-			coverage._code = { 0, 0, c, c, c | p | 1, c | 10000, c | 3000, 0, c | p | 1 };
-			coverage.updateStats();
 
-			{
-				FileCoverageV2 merge(9);
-				merge._code = { 0, 0, c, c | 5, c | p | 1, c | 10000, c | 1000, 0, c | 5 };
-				merge.merge(coverage);
-				FileCoverageV2::LineArray reference = { 0, 0, c, c | 5, c | p | 2, c | max, c | 4000, 0, c | 6 };
+			FileCoverageV2::LineArray reference = { 0, 0, c, c | 5, c | p | 2, c | max, c | 4000, 0, c | 6 };
 
-				Assert::AreEqual(reference.size(), merge._code.size());
-				Assert::AreEqual(reference, merge._code);
-				Assert::AreEqual(coverage._nbLinesFile, merge._nbLinesFile);
-				Assert::AreEqual(coverage._nbLinesCode, merge._nbLinesCode);
-				const size_t EXPECT_LINES_COVERED = 5;
-				Assert::AreEqual(EXPECT_LINES_COVERED, merge._nbLinesCovered);
+			// Create runner
+			std::stringstream stream(inputXML.c_str());
+			MergeRunnerV2 runner;
+			auto dict = runner.createDictionary("reportFilename", stream);
+			const size_t EXPECT_DICT_SIZE = 1;
+			Assert::AreEqual(EXPECT_DICT_SIZE, dict.size());
 
-				// Write data
-				const std::string filename("demo");
-				std::stringstream ss;
-				merge.md5Code = "0123456789ABCDEFGHIJKLMNOPQRSTUV";
-				FileCoverageV2::writeHeader(ss);
-				if (!dirName.empty())
-				{
-					FileCoverageV2::openDirectory(ss, dirName);
-				}
-				merge.write(filename, ss);
-				if (!dirName.empty())
-				{
-					FileCoverageV2::closeDirectory(ss);
-				}
-				FileCoverageV2::writeFooter(ss);
-
-				// Create runner
-				MergeRunnerV2 runner;
-				auto dict = runner.createDictionary(filename, ss);
-				const size_t EXPECT_DICT_SIZE = 1;
-				Assert::AreEqual(EXPECT_DICT_SIZE, dict.size());
-
-				// Check dictionary
-				const auto& saved = dict[dirName][filename];
-				Assert::AreEqual(reference.size(), saved._code.size());
-				Assert::AreEqual(reference, saved._code);
-				Assert::AreEqual(merge._nbLinesFile,    saved._nbLinesFile);
-				Assert::AreEqual(merge._nbLinesCode,    saved._nbLinesCode);
-				Assert::AreEqual(merge._nbLinesCovered, saved._nbLinesCovered);
-			}
+			// Check dictionary
+			const auto& saved = dict[dirName]["demo"];
+			Assert::AreEqual(reference.size(), saved._code.size());
+			Assert::AreEqual(reference, saved._code);
+			Assert::AreEqual((size_t)9, saved._nbLinesFile);
+			Assert::AreEqual((size_t)6, saved._nbLinesCode);
+			Assert::AreEqual((size_t)5, saved._nbLinesCovered);
 		}
 
 		TEST_METHOD(MergeWithoutDirectory)
 		{
-			MergeTest("");
+			const std::string inputXML =
+				R"(<?xml version="1.0" encoding="utf-8"?>)""\n" \
+				R"(<CppCoverage version="2.0">)""\n" \
+				R"(		<file path="demo" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
+				R"(			<stats nbLinesInFile="9" nbLinesOfCode="6" nbLinesCovered="5"/>)""\n" \
+				R"(			<coverage>AAAAAACABYACwP+/oI8AAAaA</coverage>)""\n" \
+				R"(		</file>)""\n" \
+				R"(</CppCoverage>)";
+
+			MergeTest("", inputXML);
 		}
 
 		TEST_METHOD(MergeWithDirectory)
 		{
-			MergeTest("directoryName");
+			const std::string inputXML =
+				R"(<?xml version="1.0" encoding="utf-8"?>)""\n" \
+				R"(<CppCoverage version="2.0">)""\n" \
+				R"(	<directory path="directoryName">)""\n" \
+				R"(		<file path="demo" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
+				R"(			<stats nbLinesInFile="9" nbLinesOfCode="6" nbLinesCovered="5"/>)""\n" \
+				R"(			<coverage>AAAAAACABYACwP+/oI8AAAaA</coverage>)""\n" \
+				R"(		</file>)""\n" \
+				R"(	</directory>)""\n" \
+				R"(</CppCoverage>)";
+
+			MergeTest("directoryName", inputXML);
 		}
 	};
 }
