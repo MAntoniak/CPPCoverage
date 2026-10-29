@@ -38,61 +38,94 @@ namespace TestMergeRunner
 			FileSystem::DeleteTestFiles();
 		}
 
-		void MergeTest(const std::string dirName, const std::string& inputXML)
+		TEST_METHOD(SimpleMerge)
 		{
-			const auto max = FileCoverageV2::maskCount;
-			const auto c   = FileCoverageV2::maskIsCode;
-			const auto p   = FileCoverageV2::maskIsPartial;
-
-			FileCoverageV2::LineArray reference = { 0, 0, c, c | 5, c | p | 2, c | max, c | 4000, 0, c | 6 };
-
-			// Create runner
-			MergeRunnerV2 runner;
-			auto dict = runner.makeDictionary("reportFilename");
-			const size_t EXPECT_DICT_SIZE = 1;
-			Assert::AreEqual(EXPECT_DICT_SIZE, dict.size());
-
-			// Check dictionary
-			const auto& saved = dict[dirName]["demo"];
-			Assert::AreEqual(reference.size(), saved._code.size());
-			Assert::AreEqual(reference, saved._code);
-			Assert::AreEqual((size_t)9, saved._nbLinesFile);
-			Assert::AreEqual((size_t)6, saved._nbLinesCode);
-			Assert::AreEqual((size_t)5, saved._nbLinesCovered);
-		}
-
-		TEST_METHOD(MergeWithoutDirectory)
-		{
-			const std::string inputXML =
-				R"(<?xml version="1.0" encoding="utf-8"?>)""\n" \
-				R"(<CppCoverage version="2.0">)""\n" \
-				R"(		<file path="demo" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
-				R"(			<stats nbLinesInFile="9" nbLinesOfCode="6" nbLinesCovered="5"/>)""\n" \
-				R"(			<coverage>AAAAAACABYACwP+/oI8AAAaA</coverage>)""\n" \
-				R"(		</file>)""\n" \
-				R"(</CppCoverage>)";
-
-			FileSystem::CreateTestFile("reportFilename", inputXML);
-
-			MergeTest("", inputXML);
-		}
-
-		TEST_METHOD(MergeWithDirectory)
-		{
-			const std::string inputXML =
+			const std::string report1 =
 				R"(<?xml version="1.0" encoding="utf-8"?>)""\n" \
 				R"(<CppCoverage version="2.0">)""\n" \
 				R"(	<directory path="directoryName">)""\n" \
-				R"(		<file path="demo" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
-				R"(			<stats nbLinesInFile="9" nbLinesOfCode="6" nbLinesCovered="5"/>)""\n" \
-				R"(			<coverage>AAAAAACABYACwP+/oI8AAAaA</coverage>)""\n" \
+				R"(		<file path="fileInsideDir" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
+				R"(			<stats nbLinesInFile="7" nbLinesOfCode="4" nbLinesCovered="4"/>)""\n" \
+				R"(			<coverage>BYAGgAAA/78AAALAAAA=</coverage>)""\n" \
 				R"(		</file>)""\n" \
 				R"(	</directory>)""\n" \
-				R"(</CppCoverage>)";
+				R"(	<file path="demo" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
+				R"(		<stats nbLinesInFile="9" nbLinesOfCode="6" nbLinesCovered="5"/>)""\n" \
+				R"(		<coverage>AAAAAACABYACwP+/oI8AAAaA</coverage>)""\n" \
+				R"(	</file>)""\n" \
+				R"(	<file path="diffLines" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
+				R"(		<stats nbLinesInFile="3" nbLinesOfCode="3" nbLinesCovered="0"/>)""\n" \
+				R"(		<coverage>AIAAgACA</coverage>)""\n" \
+				R"(	</file>)""\n" \
+				R"(</CppCoverage>)""\n";
 
-			FileSystem::CreateTestFile("reportFilename", inputXML);
+			const std::string report2 =
+				R"(<?xml version="1.0" encoding="utf-8"?>)""\n" \
+				R"(<CppCoverage version="2.0">)""\n" \
+				R"(	<directory path="additionalDir">)""\n" \
+				R"(		<file path="fileInsideDir" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
+				R"(			<stats nbLinesInFile="7" nbLinesOfCode="5" nbLinesCovered="3"/>)""\n" \
+				R"(			<coverage>AcBggAAAAIAQAATAAIA=</coverage>)""\n" \
+				R"(		</file>)""\n" \
+				R"(	</directory>)""\n" \
+				R"(	<directory path="directoryName">)""\n" \
+				R"(		<file path="fileInsideDir" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
+				R"(			<stats nbLinesInFile="7" nbLinesOfCode="5" nbLinesCovered="3"/>)""\n" \
+				R"(			<coverage>AcBggAAAAIAQAATAAIA=</coverage>)""\n" \
+				R"(		</file>)""\n" \
+				R"(	</directory>)""\n" \
+				R"(	<file path="demo" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
+				R"(		<stats nbLinesInFile="9" nbLinesOfCode="7" nbLinesCovered="5"/>)""\n" \
+				R"(		<coverage>AAAQADCAAcAEwACAEcoAgGCA</coverage>)""\n" \
+				R"(	</file>)""\n" \
+				R"(	<file path="diffLines" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
+				R"(		<stats nbLinesInFile="4" nbLinesOfCode="4" nbLinesCovered="0"/>)""\n" \
+				R"(		<coverage>AIAAgACAAIA=</coverage>)""\n" \
+				R"(	</file>)""\n" \
+				R"(</CppCoverage>)""\n";
 
-			MergeTest("directoryName", inputXML);
+			const std::string expectReport =
+				R"(<?xml version="1.0" encoding="utf-8"?>)""\n" \
+				R"(<CppCoverage version="2.0">)""\n" \
+				R"(	<directory path="additionalDir">)""\n" \
+				R"(		<file path="fileInsideDir" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
+				R"(			<stats nbLinesInFile="7" nbLinesOfCode="5" nbLinesCovered="3"/>)""\n" \
+				R"(			<coverage>AcBggAAAAIAQAATAAIA=</coverage>)""\n" \
+				R"(		</file>)""\n" \
+				R"(	</directory>)""\n" \
+				R"(	<directory path="directoryName">)""\n" \
+				R"(		<file path="fileInsideDir" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
+				R"(			<stats nbLinesInFile="7" nbLinesOfCode="6" nbLinesCovered="5"/>)""\n" \
+				R"(			<coverage>BoBmgAAA/78QgAbAAIA=</coverage>)""\n" \
+				R"(		</file>)""\n" \
+				R"(	</directory>)""\n" \
+				R"(		<file path="demo" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
+				R"(			<stats nbLinesInFile="9" nbLinesOfCode="8" nbLinesCovered="7"/>)""\n" \
+				R"(			<coverage>AAAQgDCABoAGwP+/sZkAgGaA</coverage>)""\n" \
+				R"(		</file>)""\n" \
+				R"(		<file path="diffLines" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
+				R"(			<stats nbLinesInFile="3" nbLinesOfCode="3" nbLinesCovered="0"/>)""\n" \
+				R"(			<coverage>AIAAgACA</coverage>)""\n" \
+				R"(		</file>)""\n" \
+				R"(</CppCoverage>)""\n";
+
+			FileSystem::CreateTestFile("report1", report1);
+			FileSystem::CreateTestFile("report2", report2);
+
+			MergeRunnerV2 merger;
+			merger.merge("report1", "report2");
+
+			std::stringstream ss;
+			merger.saveResultToStream(ss);
+
+			Assert::AreEqual(expectReport, ss.str());
+		}
+
+		TEST_METHOD(MergedFileNotExist)
+		{
+			MergeRunnerV2 merger;
+			auto func = [&] { merger.merge("report1_notExist", "report2_notExist"); };
+			Assert::ExpectException<std::exception>(func);
 		}
 	};
 }

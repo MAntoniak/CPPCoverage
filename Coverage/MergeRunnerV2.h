@@ -10,15 +10,8 @@
 #include <regex>
 #include <unordered_map>
 
-namespace TestMergeRunner
-{
-  class TestMergeRunnerV2;
-}
-
 class MergeRunnerV2 : public IMergeRunner
 {
-public:
-  friend class TestMergeRunner::TestMergeRunnerV2;
 private:
   using CodeCoverage = std::unordered_map<std::string, FileCoverageV2>;
   using DictCoverage = std::unordered_map<std::string, CodeCoverage>;
