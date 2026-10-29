@@ -72,9 +72,6 @@ namespace TestNativeV2
 
 			FileCoverageV2 coverage(fileInfo, "0123456789ABCDEFGHIJKLMNOPQRSTUV");
 
-			Assert::AreEqual<size_t>(4, coverage._nbLinesCode);
-			Assert::AreEqual<size_t>(3, coverage._nbLinesCovered);
-
 			static constexpr char EXPECT_STREAM[] =
 				"		<file path=\"filename\" md5=\"0123456789ABCDEFGHIJKLMNOPQRSTUV\">\n"
 				"			<stats nbLinesInFile=\"5\" nbLinesOfCode=\"4\" nbLinesCovered=\"3\"/>\n"
@@ -90,9 +87,6 @@ namespace TestNativeV2
 		{
 			const std::vector<uint8_t> input_str = makeCoverage({ 0, 0, c, c, c | p | 1, c | 10000, c | 3000, 0, c | p | 1 });
 			FileCoverageV2 coverage(input_str, "0123456789ABCDEFGHIJKLMNOPQRSTUV");
-
-			Assert::AreEqual<size_t>(6, coverage._nbLinesCode);
-			Assert::AreEqual<size_t>(4, coverage._nbLinesCovered);
 
 			static constexpr char EXPECT_STREAM[] =
 				"		<file path=\"filename\" md5=\"0123456789ABCDEFGHIJKLMNOPQRSTUV\">\n"

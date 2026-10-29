@@ -10,15 +10,10 @@ public:
   static const uint16_t maskIsPartial = 0x4000;
 
   using LineArray = std::vector<uint16_t>;
-  LineArray _code;
-  size_t _nbLinesCode = 0;
-  size_t _nbLinesCovered = 0;
-  std::string md5Code;
 
   explicit FileCoverageV2(const FileInfo& info, const std::string_view& md5);
   explicit FileCoverageV2(const std::vector<uint8_t>& coverage, const std::string_view& md5);
 
-  void updateStats();
   bool merge(const FileCoverageV2& other);
 
   static void writeHeader(std::ostream& ofs);
@@ -27,5 +22,9 @@ public:
   static void writeFooter(std::ostream& ofs);
   void write(const std::string& filepath, std::ostream& ofs) const;
 private:
+  LineArray _code;
+  std::string md5Code;
+
   LineArray::value_type encodeLine(bool isCode, const FileLineInfo& line);
+  std::pair<size_t, size_t> stats() const;
 };
