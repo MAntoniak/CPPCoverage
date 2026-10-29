@@ -135,5 +135,74 @@ namespace TestMergeRunner
 			auto func = [&] { merger.merge("report1_notExist", "report2_notExist"); };
 			Assert::ExpectException<std::exception>(func);
 		}
+
+		TEST_METHOD(InvalidReportsMerge)
+		{
+			const std::string report1 =
+				R"(<?xml version="1.0" encoding="utf-8"?>)""\n" \
+				R"(<CppCoverage version="2.0">)""\n" \
+				R"(	<directory path=123>)""\n" \
+				R"(		<file path="file1" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
+				R"(			<stats nbLinesInFile="7" nbLinesOfCode="4" nbLinesCovered="4"/>)""\n" \
+				R"(			<coverage>BYAGgAAA/78AAALAAAA=</coverage>)""\n" \
+				R"(		</file>)""\n" \
+				R"(		<file path="file2" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
+				R"(			<stats nbLinesInFile="AD" nbLinesOfCode="4" nbLinesCovered="4"/>)""\n" \
+				R"(			<coverage>BYAGgAAA/78AAALAAAA=</coverage>)""\n" \
+				R"(		</file>)""\n" \
+				R"(	</directory>)""\n" \
+				R"(</CppCoverage>)""\n";
+
+			const std::string report2 =
+				R"(<?xml version="1.0" encoding="utf-8"?>)""\n" \
+				R"(<CppCoverage version="2.0">)""\n" \
+				R"(	<directory path="pathDir">)""\n" \
+				R"(		<file path="file1" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
+				R"(			<stats nbLinesInFile="7" nbLinesOfCode="XY" nbLinesCovered="4"/>)""\n" \
+				R"(			<coverage>BYAGgAAA/78AAALAAAA=</coverage>)""\n" \
+				R"(		</file>)""\n" \
+				R"(		<file path="file2" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
+				R"(			<stats nbLinesInFile="7" nbLinesOfCode="4" nbLinesCovered="0x01"/>)""\n" \
+				R"(			<coverage>BYAGgAAA/78AAALAAAA=</coverage>)""\n" \
+				R"(		</file>)""\n" \
+				R"(		<file ppath="file3" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
+				R"(			<stats nbLinesInFile="7" nbLinesOfCode="4" nbLinesCovered="4"/>)""\n" \
+				R"(			<coverage>BYAGgAAA/78AAALAAAA=</coverage>)""\n" \
+				R"(		</file>)""\n" \
+				R"(		<file path="file4" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
+				R"(			<stats nnbLinesInFile="7" nbLinesOfCode="4" nbLinesCovered="4"/>)""\n" \
+				R"(			<coverage>BYAGgAAA/78AAALAAAA=</coverage>)""\n" \
+				R"(		</file>)""\n" \
+				R"(		<file path="file5" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
+				R"(			<stats nbLinesInFile="7" x="4" nbLinesCovered="4"/>)""\n" \
+				R"(			<coverage>BYAGgAAA/78AAALAAAA=</coverage>)""\n" \
+				R"(		</file>)""\n" \
+				R"(		<file path="file6" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
+				R"(			<stats nnbLinesInFile="7" nbLinesOfCode="4"/>)""\n" \
+				R"(			<coverage>BYAGgAAA/78AAALAAAA=</coverage>)""\n" \
+				R"(		</file>)""\n" \
+				R"(	</directory>)""\n" \
+				R"(</CppCoverage>)""\n";
+
+			const std::string expectReport =
+				R"(<?xml version="1.0" encoding="utf-8"?>)""\n" \
+				R"(<CppCoverage version="2.0">)""\n" \
+				R"(		<file path="file1" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
+				R"(			<stats nbLinesInFile="7" nbLinesOfCode="4" nbLinesCovered="4"/>)""\n" \
+				R"(			<coverage>BYAGgAAA/78AAALAAAA=</coverage>)""\n" \
+				R"(		</file>)""\n" \
+				R"(</CppCoverage>)""\n";
+
+			FileSystem::CreateTestFile("report1", report1);
+			FileSystem::CreateTestFile("report2", report2);
+
+			MergeRunnerV2 merger;
+			merger.merge("report1", "report2");
+
+			std::stringstream ss;
+			merger.saveResultToStream(ss);
+
+			Assert::AreEqual(expectReport, ss.str());
+		}
 	};
 }

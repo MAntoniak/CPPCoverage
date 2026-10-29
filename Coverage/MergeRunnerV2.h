@@ -84,6 +84,10 @@ private:
 
       codeCoverage[filename] = profile;
     }
+    catch (const std::invalid_argument& e)
+    {
+      std::cerr << "Invalid argument: " << e.what() << std::endl;
+    }
     catch (const std::regex_error& e)
     {
       std::cerr << "Bad regexp: " << e.what() << std::endl;
