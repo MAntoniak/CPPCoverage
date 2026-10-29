@@ -73,6 +73,10 @@ namespace TestMergeRunner
 				R"(			<stats nbLinesInFile="7" nbLinesOfCode="5" nbLinesCovered="3"/>)""\n" \
 				R"(			<coverage>AcBggAAAAIAQAATAAIA=</coverage>)""\n" \
 				R"(		</file>)""\n" \
+				R"(		<file path="additionalFileInsideDir" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
+				R"(			<stats nbLinesInFile="7" nbLinesOfCode="5" nbLinesCovered="3"/>)""\n" \
+				R"(			<coverage>AcBggAAAAIAQAATAAIA=</coverage>)""\n" \
+				R"(		</file>)""\n" \
 				R"(	</directory>)""\n" \
 				R"(	<file path="demo" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
 				R"(		<stats nbLinesInFile="9" nbLinesOfCode="7" nbLinesCovered="5"/>)""\n" \
@@ -97,6 +101,10 @@ namespace TestMergeRunner
 				R"(		<file path="fileInsideDir" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
 				R"(			<stats nbLinesInFile="7" nbLinesOfCode="6" nbLinesCovered="5"/>)""\n" \
 				R"(			<coverage>BoBmgAAA/78QgAbAAIA=</coverage>)""\n" \
+				R"(		</file>)""\n" \
+				R"(		<file path="additionalFileInsideDir" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \
+				R"(			<stats nbLinesInFile="7" nbLinesOfCode="5" nbLinesCovered="3"/>)""\n" \
+				R"(			<coverage>AcBggAAAAIAQAATAAIA=</coverage>)""\n" \
 				R"(		</file>)""\n" \
 				R"(	</directory>)""\n" \
 				R"(		<file path="demo" md5="0123456789ABCDEFGHIJKLMNOPQRSTUV">)""\n" \

@@ -153,10 +153,17 @@ private:
         while (itFileOutput != itDirOutput->second.cend())
         {
           auto fileMerge = itDirMerge->second.find(itFileOutput->first);
-          if (!fileMerge->second.merge(itFileOutput->second))
+          if (fileMerge != itDirMerge->second.cend())
           {
-            // Source is different from both version ?
-            std::cerr << "Merge warning: impossible to merge " << fileMerge->first << ": size between src/dst is not same." << std::endl;
+            if (!fileMerge->second.merge(itFileOutput->second))
+            {
+              // Source is different from both version ?
+              std::cerr << "Merge warning: impossible to merge " << fileMerge->first << ": size between src/dst is not same." << std::endl;
+            }
+          }
+          else
+          {
+            dictMerge[itDirOutput->first][itFileOutput->first] = itFileOutput->second;
           }
           ++itFileOutput;
         }
